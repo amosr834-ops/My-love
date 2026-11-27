@@ -1,6 +1,6 @@
 # For My Favorite Person
 
-A responsive static website with a home page, story, slideshow gallery, song player, and letter. On the gallery page, press "Start slideshow" to start "Therapy" and the photos together; pause stops both. No build step or package installation is required.
+A responsive static website with a home page, story, slideshow gallery, Spotify player, and letter. On the gallery page, press the slideshow button to start or pause the photos and song together. No build step or package installation is required.
 
 ## Gallery photos
 
@@ -19,4 +19,4 @@ Use descriptive alt text for accessibility. JPG, PNG, and WebP images work in mo
 
 Open `index.html` in a browser to preview the site. To publish it, upload `index.html`, all four other HTML pages, `assets/`, and this README to any static website host. Keep the folder structure unchanged so the navigation, styles, scripts, and photos continue to work.
 
-The song is an embedded YouTube video and needs an internet connection. Playback starts when the visitor presses play. The photo page also links to the original shared Google Photos album.
+The song is embedded from Spotify and needs an internet connection. The gallery uses Spotify’s iFrame API to connect playback to the slideshow button; if the browser blocks playback, use the Spotify link on the page. The photo page also links to the original shared Google Photos album.

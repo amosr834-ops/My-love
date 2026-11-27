@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#211619">
-  <meta name="description" content="Watch a little slideshow of our favorite memories together, with our song playing.">
+  <meta name="description" content="Watch a little slideshow of our favorite memories together and listen to our song on Spotify.">
   <title>Our Gallery · For My Favorite Person</title>
   <link rel="stylesheet" href="assets/css/site.css">
   <script src="assets/js/photos.js" defer></script>
@@ -12,6 +12,7 @@
   <script src="assets/js/gallery.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="site-header">
     <a class="wordmark" href="index.html" aria-label="For My Favorite Person home"><span class="wordmark-heart">♡</span> just for you</a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" aria-label="Open navigation"><span></span><span></span></button>
@@ -19,11 +20,11 @@
       <a href="index.html">Home</a><a href="story.html">Our story</a><a href="gallery.html" aria-current="page">Gallery</a><a href="music.html">Our song</a><a href="letter.html">A letter</a>
     </nav>
   </header>
-  <main>
+  <main id="main-content" tabindex="-1">
     <section class="page-hero page-wrap slideshow-hero">
       <p class="eyebrow">A little movie of us</p>
       <h1>Press play.<br><em>Think of us.</em></h1>
-      <p class="hero-copy">Let the song play while our favorite memories and little notes drift by.</p>
+      <p class="hero-copy">Press play to start the slideshow and restart the Spotify preview from the beginning.</p>
     </section>
     <section class="page-wrap slideshow-layout" aria-label="Photo slideshow with music">
       <div class="slideshow-column">
@@ -39,19 +40,19 @@
           <button class="stage-arrow stage-next" id="slide-next" type="button" aria-label="Next photo">›</button>
         </figure>
         <div class="slideshow-controls">
-          <button class="slide-toggle" id="slide-toggle" type="button" aria-pressed="false" disabled>Loading song…</button>
-          <p id="slideshow-hint">Start the slideshow to play the song and photos together.</p>
+          <button class="slide-toggle" id="slide-toggle" type="button" aria-pressed="false" disabled><span class="slide-toggle-label">Loading music…</span><span aria-hidden="true">♫</span></button>
+          <p id="slideshow-hint" aria-live="polite">The Spotify player is loading. Starting the slideshow will start the song too.</p>
         </div>
       </div>
       <aside class="soundtrack-card">
         <p class="eyebrow">Our song</p>
-        <h2>Therapy</h2>
-        <p class="soundtrack-artist">Ali Gatie</p>
+        <h2>For us</h2>
+        <p class="soundtrack-artist">Picked just for us</p>
         <div class="song-frame">
-          <iframe id="song-player" src="https://www.youtube-nocookie.com/embed/O2Yjdiy0udU?enablejsapi=1&amp;rel=0&amp;loop=1&amp;playlist=O2Yjdiy0udU" title="Ali Gatie — Therapy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          <div id="song-player" aria-label="Spotify player">Loading Spotify player…</div>
         </div>
-        <p class="song-hint" id="song-hint">Start the slideshow to play the song and photos together. The song repeats while you watch.</p>
-        <a class="text-link" href="https://www.youtube.com/watch?v=O2Yjdiy0udU" target="_blank" rel="noopener noreferrer">Open on YouTube <span aria-hidden="true">↗</span></a>
+        <p class="song-hint" id="song-hint">The embed plays a preview. Open in Spotify to listen to the full 2:56 track.</p>
+        <a class="text-link" href="https://open.spotify.com/track/0XABI8auwTM81wyVovqNBK?si=dc4afe5ba5114d68" target="_blank" rel="noopener noreferrer">Open in Spotify <span aria-hidden="true">↗</span></a>
         <a class="shared-album-link" href="https://photos.app.goo.gl/4SzKupbx4bauY8gE9" target="_blank" rel="noopener noreferrer">Open the shared album ↗</a>
       </aside>
     </section>

@@ -9,14 +9,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const slideCount = document.querySelector("#slideshow-count");
   const toggleButton = document.querySelector("#slide-toggle");
   const slideshowHint = document.querySelector("#slideshow-hint");
-  const songHint = document.querySelector("#song-hint");
   const previousButton = document.querySelector("#slide-prev");
   const nextButton = document.querySelector("#slide-next");
+  const songPlayerMount = document.querySelector("#song-player");
+  const toggleLabel = toggleButton?.querySelector(".slide-toggle-label");
+  const toggleIcon = toggleButton?.querySelector("[aria-hidden='true']");
 
   if (!emptyState || !stage || !(image instanceof HTMLImageElement) ||
       !note || !slideCount || !(toggleButton instanceof HTMLButtonElement) ||
-      !slideshowHint || !songHint ||
-      !(previousButton instanceof HTMLButtonElement) || !(nextButton instanceof HTMLButtonElement)) return;
+      !slideshowHint || !(toggleLabel instanceof HTMLElement) || !(toggleIcon instanceof HTMLElement) ||
+      !(previousButton instanceof HTMLButtonElement) || !(nextButton instanceof HTMLButtonElement) ||
+      !(songPlayerMount instanceof HTMLElement)) return;
 
   const messages = [
     "My favorite moments always have you in them.",
@@ -54,7 +57,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentIndex = 0;
   let slideshowTimer = 0;
   let imageChangeTimer = 0;
-  let youtubePlayer = null;
+  let spotifyController = null;
+  let spotifyReady = false;
 
   const showSlide = (index) => {
     currentIndex = (index + photos.length) % photos.length;
@@ -77,89 +81,102 @@ document.addEventListener("DOMContentLoaded", () => {
     window.clearInterval(slideshowTimer);
     slideshowTimer = 0;
     toggleButton.setAttribute("aria-pressed", "false");
-    toggleButton.innerHTML = 'Start slideshow <span aria-hidden="true">▶</span>';
-    stage.classList.remove("is-playing");
+    toggleLabel.textContent = "Play slideshow + song";
+    toggleIcon.textContent = "▶";
   };
 
   const startSlideshow = () => {
     if (photos.length < 2 || slideshowTimer) return;
     toggleButton.setAttribute("aria-pressed", "true");
-    toggleButton.innerHTML = 'Pause slideshow <span aria-hidden="true">Ⅱ</span>';
-    stage.classList.add("is-playing");
+    toggleLabel.textContent = "Pause slideshow + song";
+    toggleIcon.textContent = "Ⅱ";
     slideshowTimer = window.setInterval(() => showSlide(currentIndex + 1), 5200);
+  };
+
+  const setButtonReadyState = () => {
+    const canStart = photos.length > 1;
+    toggleButton.disabled = !canStart;
+    toggleLabel.textContent = canStart ? "Play slideshow + song" : "Add at least 2 photos";
+    toggleIcon.textContent = canStart ? "▶" : "♫";
   };
 
   if (photos.length === 0) {
     emptyState.hidden = false;
     stage.hidden = true;
-    toggleButton.disabled = true;
     pauseSlideshow();
-    return;
-  }
+    setButtonReadyState();
+  } else {
+    emptyState.hidden = true;
+    showSlide(0);
 
-  emptyState.hidden = true;
-  showSlide(0);
-
-  toggleButton.addEventListener("click", () => {
-    if (slideshowTimer) {
-      pauseSlideshow();
-      youtubePlayer?.pauseVideo();
-      return;
-    }
-
-    startSlideshow();
-    youtubePlayer?.playVideo();
-  });
-  previousButton.addEventListener("click", () => showSlide(currentIndex - 1));
-  nextButton.addEventListener("click", () => showSlide(currentIndex + 1));
-
-  const songFrame = document.querySelector("#song-player");
-  if (songFrame instanceof HTMLIFrameElement) {
-    if (window.location.origin !== "null") {
-      const playerUrl = new URL(songFrame.src);
-      playerUrl.searchParams.set("origin", window.location.origin);
-      songFrame.src = playerUrl.toString();
-    }
-
-    window.onYouTubeIframeAPIReady = () => {
-      youtubePlayer = new YT.Player(songFrame, {
-        events: {
-          onReady() {
-            toggleButton.disabled = false;
-            toggleButton.innerHTML = 'Start slideshow <span aria-hidden="true">▶</span>';
-            slideshowHint.textContent = "Start the slideshow to play the song and photos together.";
-            songHint.textContent = "Start the slideshow to play the song and photos together. The song repeats while you watch.";
-          },
-          onStateChange(event) {
-            if (event.data === YT.PlayerState.PLAYING) startSlideshow();
-            if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
-              pauseSlideshow();
-            }
-          },
-          onError() {
-            toggleButton.disabled = false;
-            slideshowHint.textContent = "The song player couldn't load. You can still start the photo slideshow.";
-            songHint.textContent = "The song player couldn't load. Try opening the song on YouTube.";
-          }
+    toggleButton.addEventListener("click", () => {
+      if (slideshowTimer) {
+        pauseSlideshow();
+        try {
+          spotifyController?.pause();
+          slideshowHint.textContent = "Both the slideshow and song are paused.";
+        } catch {
+          slideshowHint.textContent = "The slideshow is paused. Use the Open in Spotify link to control the song.";
         }
-      });
-    };
+        return;
+      }
 
-    const apiScript = document.createElement("script");
-    apiScript.src = "https://www.youtube.com/iframe_api";
-    apiScript.async = true;
-    apiScript.onerror = () => {
-      toggleButton.disabled = false;
-      toggleButton.innerHTML = 'Start slideshow <span aria-hidden="true">▶</span>';
-      slideshowHint.textContent = "The song player couldn't load. You can still start the photo slideshow.";
-      songHint.textContent = "The song player couldn't load. Try opening the song on YouTube.";
-    };
-    document.head.append(apiScript);
-    window.setTimeout(() => {
-      if (!toggleButton.disabled) return;
-      toggleButton.disabled = false;
-      toggleButton.innerHTML = 'Start slideshow <span aria-hidden="true">▶</span>';
-      slideshowHint.textContent = "The song player is taking a while to load. You can still start the photo slideshow.";
-    }, 8000);
+      startSlideshow();
+      try {
+        if (spotifyController) {
+          if (typeof spotifyController.restart === "function") {
+            spotifyController.restart();
+          } else if (typeof spotifyController.seek === "function") {
+            spotifyController.seek(0);
+          }
+          spotifyController.play();
+          slideshowHint.textContent = "The slideshow and Spotify preview are playing from the beginning. Open in Spotify for the full track.";
+        } else {
+          slideshowHint.textContent = "The slideshow is playing. If the song does not start, use the Open in Spotify link below.";
+        }
+      } catch {
+        slideshowHint.textContent = "The slideshow is playing. If the song does not start, use the Open in Spotify link below.";
+      }
+    });
+    previousButton.addEventListener("click", () => showSlide(currentIndex - 1));
+    nextButton.addEventListener("click", () => showSlide(currentIndex + 1));
   }
+
+  const setPlayerUnavailable = () => {
+    setButtonReadyState();
+    slideshowHint.textContent = photos.length < 2
+      ? "Add at least two photos to start the slideshow. You can still use the Open in Spotify link below."
+      : "Spotify could not connect. You can still start the slideshow and use the Spotify player below.";
+  };
+
+  window.onSpotifyIframeApiReady = (IFrameAPI) => {
+    try {
+      IFrameAPI.createController(songPlayerMount, {
+        width: "100%",
+        height: "152",
+        url: "https://open.spotify.com/track/0XABI8auwTM81wyVovqNBK?utm_source=generator&theme=0"
+      }, (controller) => {
+        spotifyController = controller;
+        controller.addListener("ready", () => {
+          spotifyReady = true;
+          setButtonReadyState();
+          slideshowHint.textContent = photos.length < 2
+            ? "Add at least two photos to start the slideshow. You can still play the song below."
+            : "Press play to start the slideshow and Spotify preview from the beginning. Open in Spotify for the full track.";
+        });
+      });
+    } catch {
+      setPlayerUnavailable();
+    }
+  };
+
+  const spotifyApiScript = document.createElement("script");
+  spotifyApiScript.src = "https://open.spotify.com/embed/iframe-api/v1";
+  spotifyApiScript.async = true;
+  spotifyApiScript.onerror = setPlayerUnavailable;
+  document.head.append(spotifyApiScript);
+
+  window.setTimeout(() => {
+    if (!spotifyReady) setPlayerUnavailable();
+  }, 10000);
 });
